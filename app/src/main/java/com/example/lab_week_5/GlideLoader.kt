@@ -1,12 +1,13 @@
 package com.example.lab_week_5
 
-import android.content.Context
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 
-class GlideLoader(private val context: Context) : ImageLoader {
+class GlideLoader : ImageLoader {
+
     override fun loadImage(imageUrl: String, imageView: ImageView) {
-        Glide.with(context)
+        // Aman karena terkait langsung dengan View lifecycle
+        Glide.with(imageView)
             .load(imageUrl)
             .centerCrop()
             .into(imageView)

@@ -23,8 +23,8 @@ class MainActivity : AppCompatActivity() {
         retrofit.create(CatApiService::class.java)
     }
 
-    private val apiResponseView: TextView by lazy {
-        findViewById(R.id.api_response)
+    private val tvBreed: TextView by lazy {
+        findViewById(R.id.tv_breed)
     }
 
     private val imageView: ImageView by lazy {
@@ -32,35 +32,46 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val imageLoader: ImageLoader by lazy {
-        GlideLoader(this)
+        GlideLoader()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        getCatImageResponse()
+        loadCatData()
     }
 
-    private fun getCatImageResponse() {
+    private fun loadCatData() {
         val call = catApiService.searchImages(1, "full")
+
         call.enqueue(object : Callback<List<ImageData>> {
 
             override fun onFailure(call: Call<List<ImageData>>, t: Throwable) {
-                Log.e(MAIN_ACTIVITY, "Error", t)
+                tvBreed.text = "Breed: Error"
+                Log.e(MAIN_ACTIVITY, "Network Error", t)
             }
 
             override fun onResponse(
                 call: Call<List<ImageData>>,
                 response: Response<List<ImageData>>
             ) {
-                if (response.isSuccessful) {
-                    val firstImage = response.body()?.firstOrNull()?.imageUrl.orEmpty()
+                if (!isDestroyed && response.isSuccessful) {
 
-                    apiResponseView.text = firstImage
+                    val data = response.body()?.firstOrNull()
 
-                    if (firstImage.isNotBlank()) {
-                        imageLoader.loadImage(firstImage, imageView)
+                    val imageUrl = data?.imageUrl.orEmpty()
+
+                    val breedName = if (!data?.breeds.isNullOrEmpty()) {
+                        data?.breeds?.firstOrNull()?.name ?: "Unknown"
+                    } else {
+                        "Unknown"
+                    }
+
+                    tvBreed.text = "Breed: $breedName"
+
+                    if (imageUrl.isNotBlank()) {
+                        imageLoader.loadImage(imageUrl, imageView)
                     }
                 }
             }
